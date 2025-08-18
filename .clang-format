@@ -5,3 +5,13 @@ ColumnLimit: 80
 AlignAfterOpenBracket: Align
 BinPackParameters: false
 BinPackArguments: false
+
+IncludeCategories:
+  - Regex: '^".*'
+    Priority: 1
+  - Regex: '^<.*\.h>'
+    Priority: 2
+  - Regex: '^<.*'
+    Priority: 3
+SortIncludes: true
+

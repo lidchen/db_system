@@ -2,27 +2,39 @@
 #include <any>
 #include <functional>
 #include <unordered_map>
+#include <mutex>
 
-#include "events.h"
-#include "utils/result.h"
-class EventBroker {
-   public:
-    std::unordered_map<Events,
-                       std::vector<std::function<void(const std::any& data)>>>
-            cb_container_;
-    void register_cb(Events event,
-                     const std::function<void(const std::any& data)>& cb) {
-        cb_container_[event].push_back(cb);
-    }
+#include "event_type.h"
 
-    Result<bool> send(const Events event, const std::any& data) {
-        if (cb_container_.find(event) != cb_container_.end()) {
-            for (auto fun : cb_container_[event]) fun(data);
-            return Result(true, "");
-        } else {
-            return Result(false,
-                          "Event " + to_string(event) +
-                                  " dont trigger callback function");
-        }
-    }
+struct Event {
+    EventType type;
+    std::string payload;
 };
+
+class EventBroker {
+public:
+    static EventBroker& get_instance();
+    using Callback = std::function<void(const Event&)>;
+    using CallbackId = size_t;
+
+    // Subscribe returns a unique id for the callback
+    CallbackId subscribe(const Callback& cb);
+
+    // Unsubscribe by id
+    void unsubscribe(CallbackId id);
+
+    void publish(const Event& e);
+
+private:
+    EventBroker() = default;
+    EventBroker(const EventBroker&) = delete;
+    EventBroker& operator= (const EventBroker&) = delete;
+    std::unordered_map<CallbackId, Callback> subscribers_;
+    std::mutex mtx_;
+    CallbackId next_id_ = 0;
+};
+
+inline EventBroker& EventBroker::get_instance() {
+    static EventBroker instance;
+    return instance;
+}

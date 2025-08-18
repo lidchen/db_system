@@ -35,6 +35,14 @@ void DbModel::set_db_dir(const std::string& db_dir) {
  */
 std::string DbModel::get_db_dir() const noexcept { return db_dir_.string(); }
 
+std::string DbModel::format_file_name(const std::string raw_input) const {
+    auto format_name = raw_input;
+    if (!raw_input.ends_with(".sqlite")) {
+        format_name += ".sqlite";
+    }
+    return format_name;
+}
+
 /**
  * @brief clear db_names_, push all file names at dir to db_names_
  *

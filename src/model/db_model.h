@@ -17,8 +17,10 @@ public:
     explicit DbModel(std::shared_ptr<DbConnection> db);
     void set_db_dir(const std::string& db_dir);
     void scan_db_dir();
+
     std::vector<std::string> get_db_names() const noexcept;
     std::string get_db_dir() const noexcept;
+    std::string format_file_name(const std::string raw_input) const;
 
     void connect(const std::string& db_name);
     void create_db(const std::string& db_name);
