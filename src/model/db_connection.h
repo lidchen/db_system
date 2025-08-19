@@ -31,17 +31,17 @@ class DbConnection {
     DbConnection& operator=(const DbConnection& other) = delete;
     ~DbConnection();
 
-    bool is_connected() const;
-    void connect(const std::string& db_file_path);
-    void close() noexcept;
-    void delete_db(const std::string& db_file_path) const;
-    void execute_sql(const std::string& sql) const;
-    void execute_sql(const std::string& sql, const RowCallback& callback) const;
-    void begin_transaction();
-    void commit_transaction();
-    void rollback_transaction();
-    void validate_db_path(const std::string& db_file_path) const;
-    [[nodiscard]]static bool validate_db_path_format(std::string_view path);
+    bool IsConnected() const;
+    void Connect(const std::string& db_file_path);
+    void Close() noexcept;
+    void DeleteDb(const std::string& db_file_path) const;
+    void ExecuteSql(const std::string& sql) const;
+    void ExecuteSql(const std::string& sql, const RowCallback& callback) const;
+    void BeginTransaction();
+    void CommitTransaction();
+    void RollbackTransaction();
+    void ValidateDbPath(const std::string& db_file_path) const;
+    [[nodiscard]]static bool ValidateDbPathFormat(std::string_view path);
 
    private:
     bool in_transaction = false;

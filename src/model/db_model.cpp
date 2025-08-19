@@ -1,11 +1,24 @@
+#include "db_model.h"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 
 #include "db_connection.h"
-#include "db_model.h"
+#include "src/utils/logger.h"
 
-DbModel::DbModel(std::shared_ptr<DbConnection> db) : db_(db) {}
+
+DbModel::DbModel(std::shared_ptr<DbConnection> db, EvtPtr event_broker)
+    : db_(db), event_broker_(event_broker) {
+    event_broker->Subscribe<ReqDbList>(
+            [this, event_broker](const ReqDbList&) {
+                // Handle ReqDbList event here
+                ScanDbDir();
+                event_broker->Publish<ResDbList>(
+                        ResDbList(GetDbNames()));
+                LOG(LogCategory::EVENT_SUBSCRIBED, "DbModel ReqDbList");
+            });
+}
 
 /**
  * @brief dont forget call this before any db_level operation
@@ -16,7 +29,7 @@ DbModel::DbModel(std::shared_ptr<DbConnection> db) : db_(db) {}
  * @param db_dir except path end without `/`
  * automatically
  */
-void DbModel::set_db_dir(const std::string& db_dir) {
+void DbModel::SetDbDir(const std::string& db_dir) {
     using enum DbException::DbErrorType;
     std::string formated_dir = db_dir;
     if (formated_dir.ends_with('/')) {
@@ -33,9 +46,9 @@ void DbModel::set_db_dir(const std::string& db_dir) {
  *
  * @return std::string db_dir_
  */
-std::string DbModel::get_db_dir() const noexcept { return db_dir_.string(); }
+std::string DbModel::GetDbDir() const noexcept { return db_dir_.string(); }
 
-std::string DbModel::format_file_name(const std::string raw_input) const {
+std::string DbModel::FormatFileName(const std::string& raw_input) const {
     auto format_name = raw_input;
     if (!raw_input.ends_with(".sqlite")) {
         format_name += ".sqlite";
@@ -49,7 +62,7 @@ std::string DbModel::format_file_name(const std::string raw_input) const {
  * throw DbException(FILE_CONSTRAINT) if dir not set
  *
  */
-void DbModel::scan_db_dir() {
+void DbModel::ScanDbDir() {
     using enum DbException::DbErrorType;
     if (db_dir_.empty()) {
         throw DbException("Database directory was not set", FILE_CONSTRAINT);
@@ -65,7 +78,7 @@ void DbModel::scan_db_dir() {
  *
  * @return std::vector<std::string> db_names
  */
-std::vector<std::string> DbModel::get_db_names() const noexcept {
+std::vector<std::string> DbModel::GetDbNames() const noexcept {
     return db_names_;
 }
 
@@ -81,15 +94,15 @@ std::vector<std::string> DbModel::get_db_names() const noexcept {
  *
  * @param db_name expect valid db file format
  */
-void DbModel::connect(const std::string& db_name) {
+void DbModel::Connect(const std::string& db_name) {
     using enum DbException::DbErrorType;
     if (db_dir_.empty()) {
         throw DbException("Database directory was not set", FILE_CONSTRAINT);
     }
-    scan_db_dir();
+    ScanDbDir();
     if (auto it = std::ranges::find(db_names_, db_name);
         it != db_names_.end()) {
-        db_->connect(db_dir_ / db_name);
+        db_->Connect(db_dir_ / db_name);
         return;
     }
     throw DbException("Current directory dont contain file: " + db_name,
@@ -108,12 +121,12 @@ void DbModel::connect(const std::string& db_name) {
  *
  * @param db_name expect valid db file format
  */
-void DbModel::create_db(const std::string& db_name) {
+void DbModel::CreateDb(const std::string& db_name) {
     using enum DbException::DbErrorType;
     if (db_dir_.empty()) {
         throw DbException("Database directory was not set", FILE_CONSTRAINT);
     }
-    if (!DbConnection::validate_db_path_format(db_name)) {
+    if (!DbConnection::ValidateDbPathFormat(db_name)) {
         throw DbException("File name format invalid: " + db_name,
                           FILE_CONSTRAINT);
     }
@@ -139,7 +152,7 @@ void DbModel::create_db(const std::string& db_name) {
  *
  * @param db_name expect valid db file format
  */
-void DbModel::delete_db(const std::string& db_name) {
+void DbModel::DeleteDb(const std::string& db_name) {
     using enum DbException::DbErrorType;
     if (db_dir_.empty()) {
         throw DbException("Database directory was not set", FILE_CONSTRAINT);

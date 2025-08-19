@@ -11,20 +11,20 @@ class wxDatabaseManagerDialog : public wxBaseDialog {
     explicit wxDatabaseManagerDialog(wxWindow* parent);
 
    private:
+    wxPanel* content_panel_ = GetContentPanel();
+    wxSizer* content_sizer_ = GetContentSizer();
+
     wxTextCtrl* db_dir_st_path_;
     Listbox* db_listbox_;
-    int ID_database_name_;
-    void test();
-
-    void list_database();
-    bool set_selected_database();
-    void on_load_database(wxCommandEvent& event);
-    void on_set_dir(wxCommandEvent& event);
-    void on_create_database(wxCommandEvent& event);
-    void on_delete_selected_database(wxCommandEvent& event);
-    void on_db_click_select(wxCommandEvent& event);
-    // void on_ok(wxCommandEvent& event) override;
-    // void on_cancel(wxCommandEvent& event) override;
+    void ListDatabase();
+    bool SetSelectedDatabase();
+    void OnLoadDatabase(const wxCommandEvent& event);
+    void OnDbClickSelect(const wxCommandEvent& event);
+    void OnSetDir(const wxCommandEvent& event);
+    void OnNew(const wxCommandEvent& event);
+    void OnDelete(const wxCommandEvent& event);
+    void OnOk(const wxCommandEvent& event);
+    void OnCancel(const wxCommandEvent& event);
 };
 
 #endif  // WX_CREATA_DATABASE_DIALOG

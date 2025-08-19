@@ -8,7 +8,7 @@ enum class EventType {
     CONTENT_CHANGE
 };
 
-inline std::string to_string(EventType event) {
+inline std::string ToString(EventType event) {
     using enum EventType;
     switch (event) {
         case DB_CHANGE: return "DB_CHANGE";

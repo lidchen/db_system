@@ -17,7 +17,7 @@
  * @param db_file_path Absolute path to the `.sqlite` database file.
  */
 DbConnection::DbConnection(const std::string& db_file_path) {
-    connect(db_file_path);
+    Connect(db_file_path);
     assert(!connected_db_file_path_.empty());
 }
 
@@ -27,7 +27,7 @@ DbConnection::DbConnection(const std::string& db_file_path) {
  * require explicitly handle transaction before disconnection
  *
  */
-DbConnection::~DbConnection() { close(); }
+DbConnection::~DbConnection() { Close(); }
 
 /**
  * @brief Throws DbException if the database cannot be opened or invaild path.
@@ -40,21 +40,21 @@ DbConnection::~DbConnection() { close(); }
  *
  * @param db_file_path Absolute path to the `.sqlite` database file.
  */
-void DbConnection::connect(const std::string& db_file_path) {
+void DbConnection::Connect(const std::string& db_file_path) {
     using enum DbException::DbErrorType;
-    if (!validate_db_path_format(db_file_path)) {
+    if (!ValidateDbPathFormat(db_file_path)) {
         throw(DbException("Invalid db_file_path: " + db_file_path,
                           FILE_CONSTRAINT));
     }
 
-    close();
+    Close();
     if (sqlite3_open(db_file_path.c_str(), &db_) != SQLITE_OK) {
         std::string err_msg = sqlite3_errmsg(db_);
         sqlite3_close(db_);
         throw DbException(("Failed to open database: " + err_msg), CONNECTION);
     }
     connected_db_file_path_ = db_file_path;
-    assert(is_connected() && connected_db_file_path_ == db_file_path);
+    assert(IsConnected() && connected_db_file_path_ == db_file_path);
 }
 
 /**
@@ -64,7 +64,7 @@ void DbConnection::connect(const std::string& db_file_path) {
  * require explicitly handle transaction before disconnection
  *
  */
-void DbConnection::close() noexcept {
+void DbConnection::Close() noexcept {
     if (db_ != nullptr) {
         if (in_transaction) {
             std::cerr << "\n================= FATAL ERROR ==================\n"
@@ -93,9 +93,9 @@ void DbConnection::close() noexcept {
  *
  * @param db_file_path Absolute path to the `.sqlite` database file.
  */
-void DbConnection::delete_db(const std::string& db_file_path) const {
+void DbConnection::DeleteDb(const std::string& db_file_path) const {
     using enum DbException::DbErrorType;
-    validate_db_path(db_file_path);
+    ValidateDbPath(db_file_path);
     if (!std::filesystem::remove(db_file_path)) {
         throw(DbException("Cant delete database: " + db_file_path,
                           FILE_SYSTEM));
@@ -112,7 +112,7 @@ void DbConnection::delete_db(const std::string& db_file_path) const {
  *
  * @param sql Expect valid sql stmt, dont validate sql correctness
  */
-void DbConnection::execute_sql(const std::string& sql) const {
+void DbConnection::ExecuteSql(const std::string& sql) const {
     char* err_msg = nullptr;
     int rc = sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, &err_msg);
     if (rc != SQLITE_OK) {
@@ -133,7 +133,7 @@ void DbConnection::execute_sql(const std::string& sql) const {
  * @param sql Expect valid sql stmt, dont validate sql correctness
  * @param callback callback function gets row & col value as vector
  */
-void DbConnection::execute_sql(const std::string& sql,
+void DbConnection::ExecuteSql(const std::string& sql,
                                const RowCallback& callback) const {
     auto wrapper_callback =
             [](void* data, int count, char** value, char** columns) {
@@ -184,10 +184,10 @@ void DbConnection::execute_sql(const std::string& sql,
  * throw DbException(SQL_EXECUTE) if sql was not executed successfully
  *
  */
-void DbConnection::begin_transaction() {
+void DbConnection::BeginTransaction() {
     using enum DbException::DbErrorType;
     if (!in_transaction) {
-        execute_sql("BEGIN TRANSACTION");
+    ExecuteSql("BEGIN TRANSACTION");
         in_transaction = true;
     } else {
         throw DbException("Already in a transaction", TRANSACTION);
@@ -201,10 +201,10 @@ void DbConnection::begin_transaction() {
  * throw DbException(SQL_EXECUTE) if sql was not executed successfully
  *
  */
-void DbConnection::commit_transaction() {
+void DbConnection::CommitTransaction() {
     using enum DbException::DbErrorType;
     if (in_transaction) {
-        execute_sql("COMMIT");
+    ExecuteSql("COMMIT");
         in_transaction = false;
     } else {
         throw DbException("Not in a transaction", TRANSACTION);
@@ -218,10 +218,10 @@ void DbConnection::commit_transaction() {
  * throw DbException(SQL_EXECUTE) if sql was not executed successfully
  *
  */
-void DbConnection::rollback_transaction() {
+void DbConnection::RollbackTransaction() {
     using enum DbException::DbErrorType;
     if (in_transaction) {
-        execute_sql("ROLLBACK");
+    ExecuteSql("ROLLBACK");
         in_transaction = false;
     } else {
         throw DbException("Not in a transaction", TRANSACTION);
@@ -237,7 +237,7 @@ void DbConnection::rollback_transaction() {
  * @return true
  * @return false
  */
-bool DbConnection::is_connected() const { return db_ != nullptr; }
+bool DbConnection::IsConnected() const { return db_ != nullptr; }
 
 /**
  * @brief validate if path ends with .sqlite, without space, and file exist
@@ -247,10 +247,10 @@ bool DbConnection::is_connected() const { return db_ != nullptr; }
  *
  * @param db_file_path Expect existed path without space, ends with .sqlite
  */
-void DbConnection::validate_db_path(const std::string& db_file_path) const {
+void DbConnection::ValidateDbPath(const std::string& db_file_path) const {
     using enum DbException::DbErrorType;
 
-    if (!validate_db_path_format(db_file_path)) {
+    if (!ValidateDbPathFormat(db_file_path)) {
         throw(DbException("Invalid db_file_path: " + db_file_path,
                           FILE_CONSTRAINT));
     }
@@ -268,7 +268,7 @@ void DbConnection::validate_db_path(const std::string& db_file_path) const {
  * @return true -> valid
  * @return false -> invalid
  */
-bool DbConnection::validate_db_path_format(std::string_view path) {
+bool DbConnection::ValidateDbPathFormat(std::string_view path) {
     if (path.size() < 7 || !path.ends_with(".sqlite")) {
         return false;
     }

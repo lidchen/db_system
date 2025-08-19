@@ -25,32 +25,32 @@ wxBaseDialog::wxBaseDialog(wxWindow* parent, const wxString& name)
     SetSizer(main_sizer);
 
     // Bind default handlers (can be overridden by child)
-    Bind(wxEVT_BUTTON, &wxBaseDialog::on_ok, this, wxID_OK);
-    Bind(wxEVT_BUTTON, &wxBaseDialog::on_cancel, this, wxID_CANCEL);
+    // Bind(wxEVT_BUTTON, &wxBaseDialog::on_ok, this, wxID_OK);
+    // Bind(wxEVT_BUTTON, &wxBaseDialog::on_cancel, this, wxID_CANCEL);
 
     // Allow child to override by re-binding in its constructor
     // Example for child: Bind(wxEVT_BUTTON, &ChildDialog::on_ok, this, wxID_OK);
 
     // EndModal for OK/CANCEL buttons
-    Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_OK); }, wxID_OK);
-    Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_CANCEL); }, wxID_CANCEL);
-    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent&) { EndModal(wxID_CANCEL); });
-    Bind(wxEVT_CHAR_HOOK, &wxBaseDialog::on_escape, this);
+    // Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_OK); }, wxID_OK);
+    // Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_CANCEL); }, wxID_CANCEL);
+    // Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent&) { EndModal(wxID_CANCEL); });
+    // Bind(wxEVT_CHAR_HOOK, &wxBaseDialog::on_escape, this);
 }
-void wxBaseDialog::on_ok(wxCommandEvent& event){
-    if (auto* btn = dynamic_cast<wxButton*>(event.GetEventObject())) {
-        btn->SetFocus();
-    }
-}
-void wxBaseDialog::on_cancel(wxCommandEvent& event) {
-    if (auto* btn = dynamic_cast<wxButton*>(event.GetEventObject())) {
-        btn->SetFocus();
-    }
-}
-void wxBaseDialog::on_escape(wxKeyEvent& event) {
-    if (event.GetKeyCode() == WXK_ESCAPE) {
-        EndModal(wxID_CANCEL);
-    } else {
-        event.Skip();
-    }
-}
+// void wxBaseDialog::on_ok(wxCommandEvent& event){
+//     if (auto* btn = dynamic_cast<wxButton*>(event.GetEventObject())) {
+//         btn->SetFocus();
+//     }
+// }
+// void wxBaseDialog::on_cancel(wxCommandEvent& event) {
+//     if (auto* btn = dynamic_cast<wxButton*>(event.GetEventObject())) {
+//         btn->SetFocus();
+//     }
+// }
+// void wxBaseDialog::on_escape(wxKeyEvent& event) {
+//     if (event.GetKeyCode() == WXK_ESCAPE) {
+//         EndModal(wxID_CANCEL);
+//     } else {
+//         event.Skip();
+//     }
+// }

@@ -3,6 +3,6 @@
 class IView {
    public:
     virtual ~IView() = default;
-    virtual void show() = 0;
-    virtual void refresh() = 0;
+    virtual void Show() = 0;
+    virtual void Refresh() = 0;
 };

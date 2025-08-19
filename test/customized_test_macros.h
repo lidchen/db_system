@@ -5,5 +5,5 @@
         expr;                                         \
         FAIL("Expected DbException to be thrown");    \
     } catch (const DbException& ex) {                 \
-        REQUIRE(ex.get_type() == expected_type);      \
+        REQUIRE(ex.GetType() == expected_type);      \
     }

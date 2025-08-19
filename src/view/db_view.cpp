@@ -1,13 +1,14 @@
+#include "db_view.h"
+
 #include "src/model/db_model.h"
+#include "src/view/db_view.h"
 #include "src/view/dialog/wx_get_file_path_dialog.h"
 #include "src/view/gui_components/horizontal_panel.h"
 #include "src/view/gui_components/listbox.h"
-#include "wx_database_manager_dialog.h"
+#include "src/utils/logger.h"
 
-#include <filesystem>
-
-wxDatabaseManagerDialog::wxDatabaseManagerDialog(wxWindow* parent)
-    : wxBaseDialog(parent, "Manage Database") {
+DbView::DbView(EvtPtr event_broker)
+    : wxBaseDialog(nullptr, "Manage Database"), event_broker_(event_broker) {
     // DB DIR HANDLE
     auto* db_dir_panel = new HorizontalPanel(content_panel_);
     auto* db_dir_st =
@@ -20,8 +21,6 @@ wxDatabaseManagerDialog::wxDatabaseManagerDialog(wxWindow* parent)
                                      wxTE_READONLY | wxBORDER_NONE);
 
     auto* db_dir_btn = new wxButton(content_panel_, wxID_ANY, "set dir");
-    // db_dir_btn->Bind(wxEVT_BUTTON, &wxDatabaseManagerDialog::on_set_dir,
-    // this);
     db_dir_panel->add_children(db_dir_st, db_dir_st_path_);
 
     // LIST BOX SHOW DB IN DB_DIR
@@ -45,28 +44,48 @@ wxDatabaseManagerDialog::wxDatabaseManagerDialog(wxWindow* parent)
 
     content_panel_->SetSizer(content_sizer);
 
-    new_btn->Bind(wxEVT_BUTTON, &wxDatabaseManagerDialog::OnNew, this);
-    delete_btn->Bind(wxEVT_BUTTON, &wxDatabaseManagerDialog::OnDelete, this);
+    // new_btn->Bind(wxEVT_BUTTON, &DbView::OnNew, this);
+    // delete_btn->Bind(wxEVT_BUTTON, &DbView::OnDelete, this);
+    // db_dir_btn->Bind(wxEVT_BUTTON, &DbView::OnSetDir, this);
+    // Bind(wxEVT_BUTTON, &DbView::OnOk, this, wxID_OK);
+    // Bind(wxEVT_BUTTON, &DbView::OnCancel, this, wxID_CANCEL);
+    // db_listbox_->Bind(wxEVT_LISTBOX_DCLICK,
+    //                   &DbView::OnDbClickSelect,
+    //                   this);
+    InitEvents();
+}
 
-    Bind(wxEVT_BUTTON, &wxDatabaseManagerDialog::OnOk, this, wxID_OK);
-    Bind(wxEVT_BUTTON, &wxDatabaseManagerDialog::OnCancel, this, wxID_CANCEL);
-    db_listbox_->Bind(wxEVT_LISTBOX_DCLICK,
-                      &wxDatabaseManagerDialog::OnDbClickSelect,
-                      this);
+void DbView::Show() {
+    wxDialog::ShowModal();
+}
+
+void DbView::Refresh() {
+    wxDialog::Refresh();
+}
+
+void DbView::InitEvents() {
+    // ListDatabase
+    event_broker_->Subscribe<ResDbList>([this](const ResDbList& event){
+        ListDatabase(event.GetPayload()); 
+        LOG(LogCategory::EVENT_SUBSCRIBED, "DbView ResDbList");
+    });
 }
 
 // call this after set dir
-void wxDatabaseManagerDialog::ListDatabase() {
+void DbView::PublishReqDbList() {
+    event_broker_->Publish(ReqDbList{});
+    LOG(LogCategory::EVENT_PUBLISH, "DbView ReqDbList");
+}
+
+void DbView::ListDatabase(const std::vector<std::string>& db_names) {
     db_listbox_->clear_list();
-    
-    db_model_.scan_db_dir();
-    auto db_names = db_model_.get_db_names();
     for (const auto& db_name : db_names) {
         db_listbox_->append_to_list(db_name);
     }
 }
 
-bool wxDatabaseManagerDialog::SetSelectedDatabase() {
+/*
+bool DbView::SetSelectedDatabase() {
     auto selected_db_name = db_listbox_->get_selected_value();
     if (!selected_db_name.empty()) {
         db_model_.connect(selected_db_name);
@@ -77,7 +96,7 @@ bool wxDatabaseManagerDialog::SetSelectedDatabase() {
     }
 }
 
-void wxDatabaseManagerDialog::OnSetDir(const wxCommandEvent& event) {
+void DbView::OnSetDir(const wxCommandEvent& event) {
     auto cb = [this](std::filesystem::path path) {
         db_dir_st_path_->SetLabel(path.string());
         content_panel_->GetSizer()->Layout();
@@ -90,7 +109,7 @@ void wxDatabaseManagerDialog::OnSetDir(const wxCommandEvent& event) {
 }
 
 // Bind this with new button
-void wxDatabaseManagerDialog::OnNew(const wxCommandEvent& event) {
+void DbView::OnNew(const wxCommandEvent& event) {
     using enum DbException::DbErrorType;
     wxTextEntryDialog dlg(
             this, wxT("Enter new database name:"), wxT("Create Database"));
@@ -110,7 +129,7 @@ void wxDatabaseManagerDialog::OnNew(const wxCommandEvent& event) {
         db_listbox_->append_to_list(db_formatted_name);
     }
 }
-void wxDatabaseManagerDialog::OnDelete(const wxCommandEvent& event) {
+void DbView::OnDelete(const wxCommandEvent& event) {
     std::string selected_db_name = db_listbox_->get_selected_value();
     if (wxMessageBox(wxString::Format("Are you sure you want to delete "
                                       "database '%s'?",
@@ -127,17 +146,19 @@ void wxDatabaseManagerDialog::OnDelete(const wxCommandEvent& event) {
         wxLogError(e.what());
     }
 }
-void wxDatabaseManagerDialog::OnDbClickSelect(const wxCommandEvent& event) {
+void DbView::OnDbClickSelect(const wxCommandEvent& event) {
     if (SetSelectedDatabase()) {
         EndModal(wxID_OK);
     }
 }
-// void wxDatabaseManagerDialog::on_ok(wxCommandEvent& event) {
+// void DbView::on_ok(wxCommandEvent& event) {
 //     if (set_selected_database()) {
 //         EndModal(wxID_OK);
 //     }
 // }
 
-// void wxDatabaseManagerDialog::on_cancel(wxCommandEvent& event) {
+// void DbView::on_cancel(wxCommandEvent& event) {
 //     EndModal(wxID_CANCEL);
 // }
+
+*/

@@ -17,6 +17,29 @@ set(VIEW_DIR "${SRC_DIR}/view")
 set(CONTROLLER_DIR "${SRC_DIR}/controller")
 set(TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/test")
 
+# Optionally toggle feature macros via cache variables for easy switching
+option(ENABLE_DEBUG "Enable DEBUG_ON macro" ON)
+option(ENABLE_UI "Enable UI_ON macro" ON)
+option(ENABLE_TEST "Enable TEST_ON macro" OFF)
+
+if(ENABLE_DEBUG)
+    add_compile_definitions(DEBUG_ON)
+else()
+    add_compile_definitions(DEBUG_OFF)
+endif()
+
+if(ENABLE_TEST)
+    add_compile_definitions(TEST_ON)
+else()
+    add_compile_definitions(TEST_OFF)
+endif()
+
+if(ENABLE_UI)
+    add_compile_definitions(UI_ON)
+else()
+    add_compile_definitions(UI_OFF)
+endif()
+
 add_executable(db_system
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${SRC_DIR}
@@ -31,15 +54,14 @@ add_executable(db_system
     ${CONTROLLER_DIR}/db_controller.cpp
 
     # View
-    ${VIEW_DIR}/welcome_panel.cpp
+    ${VIEW_DIR}/db_view.cpp
+    # ${VIEW_DIR}/welcome_panel.cpp
     ${VIEW_DIR}/main_frame.cpp
     ${VIEW_DIR}/gui_components/listbox.cpp
     ${VIEW_DIR}/gui_components/labeled_text_ctrl.cpp
-    ${VIEW_DIR}/dialog/wx_database_manager_dialog.cpp
     ${VIEW_DIR}/dialog/wx_base_dialog.cpp
 
     # Event
-    ${SRC_DIR}/event/event_broker.cpp
 
     # Test
     ${TEST_DIR}/test.cpp

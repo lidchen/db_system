@@ -5,12 +5,10 @@
 
 class wxBaseDialog : public wxDialog {
 public:
-    // wxBaseDialog(wxWindow* parent);
-protected:
     wxBaseDialog(wxWindow *parent, const wxString& name);
-    virtual void on_ok(wxCommandEvent& event);
-    virtual void on_cancel(wxCommandEvent& event);
-    void on_escape(wxKeyEvent& event);
+    wxPanel* GetContentPanel() {return content_panel_;}
+    wxSizer* GetContentSizer() {return content_sizer_;}
+private:
     wxPanel* content_panel_;
     wxSizer* content_sizer_;
 };

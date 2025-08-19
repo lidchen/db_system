@@ -12,25 +12,26 @@
  *
  */
 class DbController : public IController<DbModel, DbView> {
+    using Callback = EventBroker::Callback;
+
    public:
     explicit DbController(std::shared_ptr<DbConnection> db_connection);
     DbController(const DbController&) = delete;
     DbController& operator=(const DbController&) = delete;
-    ~DbController() = default;
 
-    void test_db_view_publish_event();
-    void refresh_db_model();
-    void refresh_db_view();
+    void ShowView();
+    DbView& GetDbView();
+    DbModel& GetDbModel();
+    void RefreshDbModel();
+    void RefreshDbView();
 
    private:
-
-    void init();
+    void InitEvents();
+    std::shared_ptr<EventBroker> mvc_event_broker_ =
+            std::make_shared<EventBroker>();
     std::shared_ptr<DbConnection> db_connection_;
-    EventBroker& event_broker_ = EventBroker::get_instance();
-
-   protected:
-    // Provide protected setter functions in IController to allow derived
-    // classes to set base pointers
-    using IController::set_model;
-    using IController::set_view;
+    std::unique_ptr<DbModel> db_model_ =
+            std::make_unique<DbModel>(db_connection_, mvc_event_broker_);
+    std::unique_ptr<DbView> db_view_ =
+            std::make_unique<DbView>(mvc_event_broker_);
 };

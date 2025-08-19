@@ -1,33 +1,38 @@
 #pragma once
 
+#include "db_connection.h"
+#include "src/event/event_broker.h"
+
+#include <filesystem>
 #include <string>
 #include <vector>
-#include <filesystem>
-
-#include "db_connection.h"
 
 /**
  * @brief For Database-Level Management
- * 
- * Manage file dir, Handles database create, delete operation, Set file directory
- * 
+ *
+ * Manage file dir, Handles database create, delete operation, Set file
+ * directory
+ *
  */
 class DbModel {
-public:
-    explicit DbModel(std::shared_ptr<DbConnection> db);
-    void set_db_dir(const std::string& db_dir);
-    void scan_db_dir();
+    using EvtPtr = std::shared_ptr<EventBroker>;
 
-    std::vector<std::string> get_db_names() const noexcept;
-    std::string get_db_dir() const noexcept;
-    std::string format_file_name(const std::string raw_input) const;
+   public:
+    explicit DbModel(std::shared_ptr<DbConnection> db, EvtPtr event_broker);
+    void SetDbDir(const std::string& db_dir);
+    void ScanDbDir();
 
-    void connect(const std::string& db_name);
-    void create_db(const std::string& db_name);
-    void delete_db(const std::string& db_name);
+    std::vector<std::string> GetDbNames() const noexcept;
+    std::string GetDbDir() const noexcept;
+    std::string FormatFileName(const std::string& raw_input) const;
+
+    void Connect(const std::string& db_name);
+    void CreateDb(const std::string& db_name);
+    void DeleteDb(const std::string& db_name);
 
    private:
+    std::shared_ptr<DbConnection> db_;
+    EvtPtr event_broker_;
     std::vector<std::string> db_names_;
     std::filesystem::path db_dir_;
-    std::shared_ptr<DbConnection> db_;
 };
